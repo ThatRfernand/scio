@@ -17,6 +17,7 @@
 
 package com.spotify.scio
 
+import com.spotify.scio.cassandra.nio._
 import com.spotify.scio.io.Tap
 import com.spotify.scio.values.SCollection
 
@@ -56,6 +57,6 @@ package object cassandra {
      */
     def saveAsCassandra(opts: CassandraOptions, parallelism: Int = 0)
                        (f: T => Seq[Any]): Future[Tap[T]] =
-      self.write(nio.CassandraIO[T](opts, parallelism)(f))
+      self.write(CassandraIO[T](opts, parallelism)(f))
     }
 }
