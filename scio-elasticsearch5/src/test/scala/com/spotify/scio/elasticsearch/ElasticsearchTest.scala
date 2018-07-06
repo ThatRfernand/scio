@@ -20,6 +20,7 @@ package com.spotify.scio.elasticsearch
 import java.net.InetSocketAddress
 
 import com.spotify.scio._
+import com.spotify.scio.elasticsearch.nio._
 import com.spotify.scio.testing._
 import org.elasticsearch.action.index.IndexRequest
 import org.joda.time.Duration
