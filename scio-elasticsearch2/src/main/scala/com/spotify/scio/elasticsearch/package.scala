@@ -19,7 +19,6 @@ package com.spotify.scio
 
 import java.net.InetSocketAddress
 
-import com.spotify.scio.elasticsearch.nio._
 import com.spotify.scio.io.Tap
 import com.spotify.scio.values.SCollection
 import org.apache.beam.sdk.io.elasticsearch.ElasticsearchIO.Write.BulkExecutionException
@@ -36,6 +35,9 @@ import scala.concurrent.Future
  * }}}
  */
 package object elasticsearch {
+
+  type ElasticsearchIO[T] = elasticsearch.nio.ElasticsearchIO[T]
+  val ElasticsearchIO = elasticsearch.nio.ElasticsearchIO
 
   case class ElasticsearchOptions(clusterName: String, servers: Seq[InetSocketAddress])
 

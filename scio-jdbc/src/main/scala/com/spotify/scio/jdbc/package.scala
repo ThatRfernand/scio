@@ -20,7 +20,6 @@ package com.spotify.scio
 import java.sql.{Driver, PreparedStatement, ResultSet}
 
 import com.spotify.scio.io.Tap
-import com.spotify.scio.jdbc.nio._
 import com.spotify.scio.values.SCollection
 import org.apache.beam.sdk.io.jdbc.JdbcIO.DataSourceConfiguration
 import org.apache.beam.sdk.io.{jdbc => jio}
@@ -36,6 +35,9 @@ import scala.reflect.ClassTag
  * }}}
  */
 package object jdbc {
+
+  type JdbcIO[T] = jdbc.nio.JdbcIO[T]
+  val JdbcIO = jdbc.nio.JdbcIO
 
   /**
    * Options for a JDBC connection.
@@ -110,14 +112,14 @@ package object jdbc {
     /** Get an SCollection for a JDBC query. */
     def jdbcSelect[T: ClassTag](readOptions: JdbcReadOptions[T])
     : SCollection[T] =
-      self.read(Select(readOptions))
+      self.read(jdbc.nio.Select(readOptions))
   }
 
   /** Enhanced version of [[com.spotify.scio.values.SCollection SCollection]] with JDBC methods. */
   implicit class JdbcSCollection[T](val self: SCollection[T]) {
     /** Save this SCollection as a JDBC database. */
     def saveAsJdbc(writeOptions: JdbcWriteOptions[T]): Future[Tap[T]] =
-      self.write(Write(writeOptions))
+      self.write(jdbc.nio.Write(writeOptions))
   }
 
 }

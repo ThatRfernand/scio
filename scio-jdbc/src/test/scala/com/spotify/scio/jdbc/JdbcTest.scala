@@ -20,7 +20,6 @@ package com.spotify.scio.jdbc
 import java.sql.ResultSet
 
 import com.spotify.scio._
-import com.spotify.scio.jdbc.nio._
 import org.apache.beam.sdk.io.{jdbc => jio}
 import com.spotify.scio.testing._
 

@@ -17,7 +17,6 @@
 
 package com.spotify.scio
 
-import com.spotify.scio.cassandra.nio._
 import com.spotify.scio.io.Tap
 import com.spotify.scio.values.SCollection
 
@@ -31,6 +30,9 @@ import scala.concurrent.Future
  * }}}
  */
 package object cassandra {
+
+  type CassandraIO[T] = cassandra.nio.CassandraIO[T]
+  val CassandraIO = cassandra.nio.CassandraIO
 
   case class CassandraOptions(keyspace: String, table: String, cql: String,
                               seedNodeHost: String, seedNodePort: Int = -1,

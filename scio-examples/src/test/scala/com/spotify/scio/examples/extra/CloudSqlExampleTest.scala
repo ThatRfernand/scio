@@ -19,7 +19,6 @@ package com.spotify.scio.examples.extra
 
 import com.spotify.scio._
 import com.spotify.scio.jdbc._
-import com.spotify.scio.jdbc.nio._
 import com.spotify.scio.testing._
 
 class CloudSqlExampleTest extends PipelineSpec {
