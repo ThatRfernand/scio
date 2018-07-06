@@ -1033,7 +1033,7 @@ sealed trait SCollection[T] extends PCollectionWrapper[T] {
 
   private def writeImpl(io: nio.ScioIO[T])(params: io.WriteP): Future[Tap[T]] = {
     if (context.isTest) {
-      context.testOutNio(io.id)(this)
+      context.testOut(io.id)(this)
       this.saveAsInMemoryTap
     } else {
       io.write(this, params)

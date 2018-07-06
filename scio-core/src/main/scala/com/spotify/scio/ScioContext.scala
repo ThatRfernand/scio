@@ -449,25 +449,22 @@ class ScioContext private[scio] (val options: PipelineOptions,
   /**  Whether this is a test context. */
   def isTest: Boolean = testId.isDefined
 
-  private[scio] def testInNio: TestInputNio = TestDataManager.getInputNio(testId.get)
-  private[scio] def testOutNio: TestOutputNio = TestDataManager.getOutputNio(testId.get)
+  private[scio] def testIn: TestInput = TestDataManager.getInput(testId.get)
+  private[scio] def testOut: TestOutput = TestDataManager.getOutput(testId.get)
   private[scio] def testDistCache: TestDistCache = TestDataManager.getDistCache(testId.get)
 
   private[scio] def testOut[T](key: ScioIO[T]): SCollection[T] => Unit =
-    testOutNio(key.id)
+    testOut(key.id)
 
   private[scio] def getTestInput[T: ClassTag](key: ScioIO[T]): SCollection[T] =
-    getTestInputNio(key.id)
+    this.parallelize(testIn(key.id).asInstanceOf[Seq[T]])
 
   // FIXME: NIO remove
   private[scio] def testOut[T](key: TestIO[T]): SCollection[T] => Unit =
-    testOutNio(key.key)
+    testOut(key.key)
 
   private[scio] def getTestInput[T: ClassTag](key: TestIO[T]): SCollection[T] =
-    getTestInputNio(key.key)
-
-  private[scio] def getTestInputNio[T: ClassTag](key: String): SCollection[T] =
-    this.parallelize(testInNio(key).asInstanceOf[Seq[T]])
+    this.parallelize(testIn(key.key).asInstanceOf[Seq[T]])
 
   // =======================================================================
   // Read operations
@@ -628,7 +625,7 @@ class ScioContext private[scio] (val options: PipelineOptions,
   private def readImpl[T: ClassTag](io: ScioIO[T])(params: io.ReadP): SCollection[T] =
     requireNotClosed {
       if (this.isTest) {
-        this.getTestInputNio(io.id)
+        this.getTestInput(io)
       } else {
         io.read(this, params)
       }

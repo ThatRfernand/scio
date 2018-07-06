@@ -49,7 +49,7 @@ final class AvroSCollection[T](@transient val self: SCollection[T]) extends Seri
     } else if(context.isTest) {
       // Do not run assertions on materilized value but still access test context to trigger
       // the test checking if we're running inside a JobTest
-      context.testOutNio
+      context.testOut
       saveAsInMemoryTap
     } else {
       saveAsObjectFile(path)

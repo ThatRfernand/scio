@@ -48,7 +48,7 @@ case class TextIO(path: String) extends ScioIO[String] {
 
   def read(sc: ScioContext, params: ReadParams): SCollection[String] = sc.requireNotClosed {
     if (sc.isTest) {
-      sc.getTestInputNio(this.id)
+      sc.getTestInput(this)
     } else {
       sc.wrap(sc.applyInternal(BTextIO.read().from(path)
         .withCompression(params.compression))).setName(path)
@@ -57,7 +57,7 @@ case class TextIO(path: String) extends ScioIO[String] {
 
   def write(data: SCollection[String], params: WriteParams): Future[Tap[String]] = {
     if (data.context.isTest) {
-      data.context.testOutNio(this.id)(data)
+      data.context.testOut(this.id)(data)
       // TODO: replace this with ScioIO[T] subclass when we have nio InMemoryIO[T]
       data.saveAsInMemoryTap
     } else {

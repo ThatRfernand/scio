@@ -24,7 +24,7 @@ import scala.collection.concurrent.TrieMap
 import scala.collection.mutable.{Set => MSet}
 
 /* Inputs are Scala Iterables to be parallelized for TestPipeline */
-private[scio] class TestInputNio(val m: Map[String, Iterable[_]]) {
+private[scio] class TestInput(val m: Map[String, Iterable[_]]) {
   val s: MSet[String] = MSet.empty
 
   def apply[T](key: String): Iterable[T] = {
@@ -45,7 +45,7 @@ private[scio] class TestInputNio(val m: Map[String, Iterable[_]]) {
 }
 
 /* Outputs are lambdas that apply assertions on SCollections */
-private[scio] class TestOutputNio(val m: Map[String, SCollection[_] => Unit]) {
+private[scio] class TestOutput(val m: Map[String, SCollection[_] => Unit]) {
   val s: MSet[String] = MSet.empty
 
   def apply[T](key: String): SCollection[T] => Unit = {
@@ -83,8 +83,8 @@ private[scio] class TestDistCache(val m: Map[DistCacheIO[_], _]) {
 
 private[scio] object TestDataManager {
 
-  private val inputNios = TrieMap.empty[String, TestInputNio]
-  private val outputNios = TrieMap.empty[String, TestOutputNio]
+  private val inputs = TrieMap.empty[String, TestInput]
+  private val outputs = TrieMap.empty[String, TestOutput]
   private val distCaches = TrieMap.empty[String, TestDistCache]
   private val closed = TrieMap.empty[String, Boolean]
   private val results = TrieMap.empty[String, ScioResult]
@@ -94,11 +94,11 @@ private[scio] object TestDataManager {
     m(key)
   }
 
-  def getInputNio(testId: String)
-  : TestInputNio = getValue(testId, inputNios, "reading input")
+  def getInput(testId: String)
+  : TestInput = getValue(testId, inputs, "reading input")
 
-  def getOutputNio(testId: String)
-  : TestOutputNio = getValue(testId, outputNios, "writing output")
+  def getOutput(testId: String)
+  : TestOutput = getValue(testId, outputs, "writing output")
 
   def getDistCache(testId: String): TestDistCache =
     getValue(testId, distCaches, "using dist cache")
@@ -107,14 +107,14 @@ private[scio] object TestDataManager {
             inNios: Map[String, Iterable[_]],
             outNios: Map[String, SCollection[_] => Unit],
             dcs: Map[DistCacheIO[_], _]): Unit = {
-    inputNios += (testId -> new TestInputNio(inNios))
-    outputNios += (testId -> new TestOutputNio(outNios))
+    inputs += (testId -> new TestInput(inNios))
+    outputs += (testId -> new TestOutput(outNios))
     distCaches += (testId -> new TestDistCache(dcs))
   }
 
   def tearDown(testId: String, f: ScioResult => Unit = _ => Unit): Unit = {
-    inputNios.remove(testId).foreach(_.validate())
-    outputNios.remove(testId).foreach(_.validate())
+    inputs.remove(testId).foreach(_.validate())
+    outputs.remove(testId).foreach(_.validate())
     distCaches.remove(testId).get.validate()
     ensureClosed(testId)
     val result = results.remove(testId).get
