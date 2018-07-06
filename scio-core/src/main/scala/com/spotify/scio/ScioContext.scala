@@ -36,7 +36,7 @@ import com.spotify.scio.util._
 import com.spotify.scio.values._
 import org.apache.beam.sdk.PipelineResult.State
 import org.apache.beam.sdk.extensions.gcp.options.GcsOptions
-import org.apache.beam.sdk.io.gcp.{datastore => dsio, pubsub => psio}
+import org.apache.beam.sdk.io.gcp.{pubsub => psio}
 import org.apache.beam.sdk.metrics.Counter
 import org.apache.beam.sdk.options._
 import org.apache.beam.sdk.transforms._
@@ -453,6 +453,13 @@ class ScioContext private[scio] (val options: PipelineOptions,
   private[scio] def testOutNio: TestOutputNio = TestDataManager.getOutputNio(testId.get)
   private[scio] def testDistCache: TestDistCache = TestDataManager.getDistCache(testId.get)
 
+  private[scio] def testOut[T](key: ScioIO[T]): SCollection[T] => Unit =
+    testOutNio(key.id)
+
+  private[scio] def getTestInput[T: ClassTag](key: ScioIO[T]): SCollection[T] =
+    getTestInputNio(key.id)
+
+  // FIXME: NIO remove
   private[scio] def testOut[T](key: TestIO[T]): SCollection[T] => Unit =
     testOutNio(key.key)
 
@@ -474,18 +481,10 @@ class ScioContext private[scio] (val options: PipelineOptions,
    * Get an SCollection for a Datastore query.
    * @group input
    */
-  def datastore(projectId: String, query: Query, namespace: String = null): SCollection[Entity] =
-    requireNotClosed {
-      if (this.isTest) {
-        this.getTestInput(DatastoreIO(projectId, query, namespace))
-      } else {
-        wrap(this.applyInternal(
-          dsio.DatastoreIO.v1().read()
-            .withProjectId(projectId)
-            .withNamespace(namespace)
-            .withQuery(query)))
-      }
-    }
+  def datastore(projectId: String, query: Query, namespace: String = null): SCollection[Entity] = {
+    val io = nio.DatastoreIO(projectId)
+    this.read(io)(io.ReadParams(query, namespace))
+  }
 
   private def pubsubIn[T: ClassTag](isSubscription: Boolean,
                                     name: String,
@@ -595,14 +594,10 @@ class ScioContext private[scio] (val options: PipelineOptions,
    * @group input
    */
   def textFile(path: String,
-               compression: gio.Compression = gio.Compression.AUTO)
-  : SCollection[String] = requireNotClosed {
-    if (this.isTest) {
-      this.getTestInput(TextIO(path))
-    } else {
-      wrap(this.applyInternal(gio.TextIO.read().from(path)
-        .withCompression(compression))).setName(path)
-    }
+                compression: gio.Compression = gio.Compression.AUTO)
+  : SCollection[String] = {
+    val io = nio.TextIO(path)
+    this.read(io)(io.ReadParams(compression))
   }
 
   /**

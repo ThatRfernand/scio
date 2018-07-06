@@ -21,7 +21,7 @@ import java.lang.{Boolean => JBoolean}
 
 import com.spotify.scio.ScioContext
 import com.spotify.scio.io.Tap
-import com.spotify.scio.testing.AvroIO
+import com.spotify.scio.avro.AvroIO
 import com.spotify.scio.util.{ClosureCleaner, ScioUtil}
 import com.spotify.scio.values.SCollection
 import org.apache.avro.Schema

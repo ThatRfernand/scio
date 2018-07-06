@@ -53,13 +53,6 @@ final case class ElacticsearchIO[T](
 
   /**
    * Save this SCollection into Elasticsearch.
-   *
-   * @param esOptions Elasticsearch options
-   * @param flushInterval delays to Elasticsearch writes for rate limiting purpose
-   * @param f function to transform arbitrary type T to Elasticsearch [[ActionRequest]]
-   * @param numOfShards number of parallel writes to be performed, recommended setting is the
-   *                   number of pipeline workers
-   * @param errorFn function to handle error when performing Elasticsearch bulk writes
    */
   def write(sc: SCollection[T], params: WriteP): Future[Tap[T]] = {
     val shards = if (numOfShards > 0) numOfShards else esOptions.servers.size

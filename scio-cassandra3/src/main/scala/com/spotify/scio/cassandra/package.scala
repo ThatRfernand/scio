@@ -18,7 +18,6 @@
 package com.spotify.scio
 
 import com.spotify.scio.io.Tap
-import com.spotify.scio.testing.TestIO
 import com.spotify.scio.values.SCollection
 
 import scala.concurrent.Future
@@ -35,23 +34,6 @@ package object cassandra {
   case class CassandraOptions(keyspace: String, table: String, cql: String,
                               seedNodeHost: String, seedNodePort: Int = -1,
                               username: String = null, password: String = null)
-
-  case class CassandraIO[T](uniqueId: String) extends TestIO[T](uniqueId)
-
-  object CassandraIO {
-    def apply[T](opts: CassandraOptions): CassandraIO[T] = {
-      val sb = new StringBuilder
-      if (opts.username != null && opts.password != null) {
-        sb.append(s"${opts.username}:${opts.password}@")
-      }
-      sb.append(opts.seedNodeHost)
-      if (opts.seedNodePort >= 0) {
-        sb.append(opts.seedNodePort)
-      }
-      sb.append(s"/${opts.keyspace}/${opts.table}/${opts.cql}")
-      CassandraIO[T](sb.toString())
-    }
-  }
 
   /**
    * Enhanced version of [[com.spotify.scio.values.SCollection SCollection]] with Cassandra
@@ -74,6 +56,6 @@ package object cassandra {
      */
     def saveAsCassandra(opts: CassandraOptions, parallelism: Int = 0)
                        (f: T => Seq[Any]): Future[Tap[T]] =
-      self.write(nio.Cassandra[T](opts, parallelism)(f))
+      self.write(nio.CassandraIO[T](opts, parallelism)(f))
     }
 }

@@ -17,8 +17,6 @@
 
 package com.spotify.scio.testing
 
-import com.google.api.services.bigquery.model.TableRow
-import com.google.datastore.v1.{Entity, Query}
 import com.spotify.scio.ScioResult
 import com.spotify.scio.values.SCollection
 
@@ -138,27 +136,14 @@ private[scio] object TestDataManager {
 
 /* For matching IO types */
 
+// FIXME: NIO remote all
+
 class TestIO[+T] private[scio] (val key: String) {
   require(key != null, s"$this has null key")
   require(!key.isEmpty, s"$this has empty string key")
 }
 
-case class ObjectFileIO[T](path: String) extends TestIO[T](path)
-
-case class AvroIO[T](path: String) extends TestIO[T](path)
-
-case class BigQueryIO[T](tableSpecOrQuery: String) extends TestIO[T](tableSpecOrQuery)
-
-case class DatastoreIO(projectId: String, query: Query = null, namespace: String = null)
-  extends TestIO[Entity](projectId)
-
-case class ProtobufIO[T](path: String) extends TestIO[T](path)
-
 case class PubsubIO[T](topic: String) extends TestIO[T](topic)
-
-case class TableRowJsonIO(path: String) extends TestIO[TableRow](path)
-
-case class TextIO(path: String) extends TestIO[String](path)
 
 case class DistCacheIO[T](uri: String)
 
