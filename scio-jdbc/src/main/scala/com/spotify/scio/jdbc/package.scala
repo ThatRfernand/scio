@@ -20,7 +20,7 @@ package com.spotify.scio
 import java.sql.{Driver, PreparedStatement, ResultSet}
 
 import com.spotify.scio.io.Tap
-import com.spotify.scio.testing.TestIO
+import com.spotify.scio.jdbc.nio._
 import com.spotify.scio.values.SCollection
 import org.apache.beam.sdk.io.jdbc.JdbcIO.DataSourceConfiguration
 import org.apache.beam.sdk.io.{jdbc => jio}
@@ -77,26 +77,19 @@ package object jdbc {
                                  preparedStatementSetter: (T, PreparedStatement) => Unit = null)
     extends JdbcIoOptions
 
-  case class JdbcIO[T](uniqueId: String) extends TestIO[T](uniqueId)
-
-  object JdbcIO {
-    def apply[T](jdbcIoOptions: JdbcIoOptions): JdbcIO[T] = JdbcIO[T](jdbcIoId(jdbcIoOptions))
-  }
-
   private[jdbc] def jdbcIoId(opts: JdbcConnectionOptions, query: String): String = {
     val user = opts.password
-      .fold(s"${opts.username}")(password => s"${opts.username}:${password}")
+      .fold(s"${opts.username}")(password => s"${opts.username}:$password")
     s"$user@${opts.connectionUrl}:$query"
   }
 
-  private def jdbcIoId(opts: JdbcIoOptions): String = opts match {
+  private[jdbc] def jdbcIoId(opts: JdbcIoOptions): String = opts match {
     case JdbcReadOptions(connOpts, query, _, _) => jdbcIoId(connOpts, query)
     case JdbcWriteOptions(connOpts, statement, _) => jdbcIoId(connOpts, statement)
   }
 
-  private[jdbc] def getDataSourceConfig(
-                                         opts: jdbc.JdbcConnectionOptions
-                                       ): DataSourceConfiguration = {
+  private[jdbc] def getDataSourceConfig(opts: jdbc.JdbcConnectionOptions)
+  : DataSourceConfiguration = {
     opts.password match {
       case Some(pass) => {
         jio.JdbcIO.DataSourceConfiguration
@@ -117,14 +110,14 @@ package object jdbc {
     /** Get an SCollection for a JDBC query. */
     def jdbcSelect[T: ClassTag](readOptions: JdbcReadOptions[T])
     : SCollection[T] =
-      self.read(nio.Select(readOptions))
+      self.read(Select(readOptions))
   }
 
   /** Enhanced version of [[com.spotify.scio.values.SCollection SCollection]] with JDBC methods. */
   implicit class JdbcSCollection[T](val self: SCollection[T]) {
     /** Save this SCollection as a JDBC database. */
     def saveAsJdbc(writeOptions: JdbcWriteOptions[T]): Future[Tap[T]] =
-      self.write(nio.Write(writeOptions))
+      self.write(Write(writeOptions))
   }
 
 }

@@ -19,9 +19,10 @@ package com.spotify.scio.jdbc
 
 import java.sql.ResultSet
 
-import com.spotify.scio.ScioContext
+import com.spotify.scio._
+import com.spotify.scio.jdbc.nio._
 import org.apache.beam.sdk.io.{jdbc => jio}
-import com.spotify.scio.testing.PipelineSpec
+import com.spotify.scio.testing._
 
 object JdbcJob {
 
@@ -72,7 +73,7 @@ class JdbcTest extends PipelineSpec {
 
     JobTest[JdbcJob.type]
       .args(args: _*)
-      .input(JdbcIO(readOpts), Seq("a", "b", "c"))
+      .input(JdbcIO[String](readOpts), Seq("a", "b", "c"))
       .output(JdbcIO[String](writeOpts))(_ should containInAnyOrder (xs))
       .run()
   }
@@ -101,7 +102,7 @@ class JdbcTest extends PipelineSpec {
 
     JobTest[JdbcJob.type]
       .args(args: _*)
-      .input(JdbcIO(readOpts), Seq("a", "b", "c"))
+      .input(JdbcIO[String](readOpts), Seq("a", "b", "c"))
       .output(JdbcIO[String](writeOpts))(_ should containInAnyOrder (expected))
       .run()
   }
