@@ -315,25 +315,23 @@ class ScioContext private[scio] (val options: PipelineOptions,
     new SCollectionImpl[T](p, this)
 
   /**
-  * Add callbacks calls when the context is closed.
-  */
+   * Add callbacks calls when the context is closed.
+   */
   private[scio] def onClose(f: Unit => Unit): Unit =
     _onClose = _onClose compose f
 
-  /**
-  * Get from or put in an object in this context local cache
-  * This method is used un scio-bigquery to only instanciate the bigquery client once
-  * even if there's multiple implicit conversions from [[ScioContext]] to [[BigQueryScioContext]]
-  */
+  /*
+   * Get from or put in an object in this context local cache
+   * This method is used in `scio-bigquery` to only instantiate the BigQuery client once
+   * even if there's multiple implicit conversions from [[ScioContext]] to `BigQueryScioContext`
+   */
   private[scio] def cached[T: ClassTag](t: => T): T = {
     val key = implicitly[ClassTag[T]]
-    _localInstancesCache.get(key).getOrElse {
+    _localInstancesCache.getOrElse(key, {
       _localInstancesCache += key -> t
       t
-    }.asInstanceOf[T]
+    }).asInstanceOf[T]
   }
-
-
 
   // =======================================================================
   // States
