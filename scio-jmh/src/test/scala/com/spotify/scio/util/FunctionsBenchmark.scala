@@ -15,24 +15,26 @@ import scala.collection.JavaConverters._
 @State(Scope.Thread)
 class FunctionsBenchmark {
 
-  val input = Lists.newArrayList((1 to 100).asJava)
-  val output = (1 to 100).sum
+  type T = Set[Int]
 
-  val aggregateFn = Functions.aggregateFn[Int, Int](0)(_ + _, _ + _)
-  val combineFn = Functions.combineFn[Int, Int](identity, _ + _, _ + _)
-  val reduceFn = Functions.reduceFn((x: Int, y: Int) => x + y)
-  val sgFn = Functions.reduceFn(Semigroup.intSemigroup)
-  val monFn = Functions.reduceFn(Monoid.intMonoid)
+  val input = Lists.newArrayList((1 to 100).map(Set(_)).asJava)
+  val output = (1 to 100).toSet
 
-  def test(fn: CombineFn[Int, _, Int], output: Int): Int = {
+  val aggregateFn = Functions.aggregateFn[T, T](Set.empty[Int])(_ ++ _, _ ++ _)
+  val combineFn = Functions.combineFn[T, T](identity, _ ++ _, _ ++ _)
+  val reduceFn = Functions.reduceFn((x: T, y: T) => x ++ y)
+  val sgFn = Functions.reduceFn(Semigroup.setSemigroup[Int])
+  val monFn = Functions.reduceFn(Monoid.setMonoid[Int])
+
+  def test(fn: CombineFn[T, _, T], input: java.util.List[T], output: T): T = {
     CombineFnTester.testCombineFn(fn, input, output)
     output
   }
 
-  @Benchmark def benchAggregate: Int = test(aggregateFn, output)
-  @Benchmark def benchCombine: Int = test(combineFn, output)
-  @Benchmark def benchReduce: Int = test(reduceFn, output)
-  @Benchmark def benchSemigroup: Int = test(sgFn, output)
-  @Benchmark def benchMonoid: Int = test(monFn, output)
+  @Benchmark def benchAggregate: T = test(aggregateFn, input, output)
+  @Benchmark def benchCombine: T = test(combineFn, input, output)
+  @Benchmark def benchReduce: T = test(reduceFn, input, output)
+  @Benchmark def benchSemigroup: T = test(sgFn, input, output)
+  @Benchmark def benchMonoid: T = test(monFn, input, output)
 
 }
